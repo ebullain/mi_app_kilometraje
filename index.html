@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mi Kilometraje</title>
+        
+        <!-- PWA Meta Tags -->
+        <link rel="manifest" href="manifest.json">
+        <meta name="theme-color" content="#667eea">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-title" content="Kilometraje">
+        
+        <link rel="stylesheet" href="/css/styles.css">
+        <!-- Iconos para iOS y Android -->
+        <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==">
+        <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==">
+    </head>
+<body>
+    <div class="app-container">
+        <!-- Encabezado -->
+        <header>
+            <button type="button" id="btn-ajustes" class="btn-ajustes" title="Ajustes">⚙️</button>
+            <h1>🚗 Mi Kilometraje</h1>
+            <p class="fecha-actual" id="fechaActual"></p>
+        </header>
+
+        <!-- Pestañas de Navegación -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="registro">📝 Registrar</button>
+            <button class="tab-btn" data-tab="historial">📋 Historial</button>
+            <button class="tab-btn" data-tab="lugares">📍 Lugares</button>
+            <button class="tab-btn" data-tab="estadisticas">📊 Estadísticas</button>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main>
+            <!-- Sección de Registro -->
+            <section id="registro" class="tab-content active">
+                <form id="formViaje">
+                    <div class="form-group">
+                        <label for="fecha">Fecha:</label>
+                        <input type="date" id="fecha" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hodometroInicial">Hodómetro Inicial (km):</label>
+                        <input type="number" id="hodometroInicial" 
+                               placeholder="Ej: 45230" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hodometroFinal">Hodómetro Final (km):</label>
+                        <input type="number" id="hodometroFinal" 
+                               placeholder="Ej: 45280" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lugar">Lugar de Destino:</label>
+                        <input type="text" id="lugar" 
+                               placeholder="Ej: Oficina, Supermercado..." required>
+                        <datalist id="lugaresSugeridos"></datalist>
+                        <button type="button" id="btn-usar-gps" class="btn-gps" disabled>
+                            📍 Usar mi ubicación actual
+                        </button>
+                        <small id="gps-status" class="gps-status">GPS: verificando...</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="proposito">Propósito (opcional):</label>
+                        <select id="proposito">
+                            <option value="">Seleccionar...</option>
+                            <option value="trabajo">Trabajo</option>
+                            <option value="personal">Personal</option>
+                            <option value="compras">Compras</option>
+                            <option value="salud">Salud</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        💾 Guardar Viaje
+                    </button>
+                </form>
+
+                <!-- Último viaje registrado -->
+                <div id="ultimoViaje" class="ultimo-viaje"></div>
+            </section>
+
+                        <!-- Sección de Historial -->
+            <section id="historial" class="tab-content">
+                 <div class="filtros">
+                    <select id="filtroMes">
+                        <option value="">Todos los meses</option>
+                    </select>
+                    <select id="filtroCategoria">
+                        <option value="">Todas las categorías</option>
+                        <option value="casa">🏠 Casa</option>
+                        <option value="trabajo">💼 Trabajo</option>
+                        <option value="salud">🏥 Salud</option>
+                        <option value="personal">👤 Personal</option>
+                        <option value="otros">📦 Otros</option>
+                    </select>
+                    <button onclick="aplicarFiltros()" class="btn-secondary">
+                        Filtrar
+                    </button>
+                    <button onclick="limpiarFiltro()" class="btn-secondary">
+                        Ver Todo
+                    </button>
+                </div>
+                <div id="resumenFiltro" class="resumen-filtro"></div>
+                <div id="listaViajes" class="lista-viajes"></div>
+            </section>
+            
+                        <!-- Sección de Lugares -->
+            <section id="lugares" class="tab-content">
+                <div class="lugares-header">
+                    <h3>Lugares visitados</h3>
+                    <p class="lugares-info">Asigna una categoría a cada lugar para organizarlos.</p>
+                </div>
+                <div id="listaLugares" class="lista-lugares">
+                    <p style="text-align:center;color:#999;">Cargando lugares...</p>
+                </div>
+            </section>
+
+
+                        <!-- Sección de Estadísticas -->
+            <section id="estadisticas" class="tab-content">
+                <!-- Selector de mes -->
+                <div class="stats-mes-selector">
+                    <label for="statsMes">Mes a consultar:</label>
+                    <select id="statsMes">
+                        <option value="">Mes actual</option>
+                    </select>
+                </div>
+
+                <!-- Tarjetas principales -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <h3 id="statsTituloMes">Este Mes</h3>
+                        <p class="stat-number" id="kmMes">0 km</p>
+                        <p class="stat-label">Kilómetros recorridos</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Viajes</h3>
+                        <p class="stat-number" id="totalViajes">0</p>
+                        <p class="stat-label">Viajes en el mes</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Distancia media</h3>
+                        <p class="stat-number" id="distanciaMedia">0 km</p>
+                        <p class="stat-label">Por viaje</p>
+                    </div>
+
+                    <div class="stat-card stat-card-total">
+                        <h3>Total histórico</h3>
+                        <p class="stat-number" id="totalHistoricoKm">0 km</p>
+                        <p class="stat-label" id="totalHistoricoViajes">0 viajes en total</p>
+                    </div>
+                </div>
+
+                <!-- Desglose por categoría -->
+                <div class="stats-seccion">
+                    <h3>Kilómetros por categoría</h3>
+                    <div id="statsCategorias" class="stats-categorias">
+                        <p style="color:#999;text-align:center;">Sin datos aún</p>
+                    </div>
+                </div>
+
+                <!-- Lugares frecuentes -->
+                <div class="stats-seccion">
+                    <h3>Lugares frecuentes</h3>
+                    <div id="lugaresFrecuentes"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal de Ajustes -->
+        <div id="modalAjustes" class="modal-overlay">
+            <div class="modal-contenido">
+                <div class="modal-header">
+                    <h2>⚙️ Ajustes</h2>
+                    <button type="button" id="cerrarAjustes" class="btn-cerrar" title="Cerrar">✕</button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Info de datos guardados -->
+                    <div class="info-datos" id="infoDatos">
+                        <p>Cargando información...</p>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="acciones-datos">
+                        <button type="button" id="btn-exportar" class="btn-accion btn-exportar">
+                            ⬇️ Exportar todos los datos
+                        </button>
+                        <p class="accion-descripcion">
+                            Descarga un archivo <strong>.json</strong> con todos tus viajes, lugares y categorías. Guarda ese archivo en un lugar seguro.
+                        </p>
+
+                        <button type="button" id="btn-importar" class="btn-accion btn-importar">
+                            ⬆️ Importar datos desde archivo
+                        </button>
+                        <p class="accion-descripcion">
+                            Restaura un respaldo anterior. <strong>Atención:</strong> esto reemplazará todos los datos actuales.
+                        </p>
+                        <input type="file" id="inputArchivo" accept=".json" hidden>
+
+                        <button type="button" id="btn-borrar-todo" class="btn-accion btn-peligro">
+                            🗑️ Borrar todos los datos
+                        </button>
+                        <p class="accion-descripcion">
+                            Elimina <strong>permanentemente</strong> todos tus viajes, lugares y categorías. Esta acción no se puede deshacer.
+                        </p>
+                    </div>
+
+                    <p class="version-info">Mi Kilometraje v1.0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Motor de datos y GPS -->
+    <script src="js/data-storage.js"></script>
+    <script src="js/gps-tracker.js"></script>
+    
+    <!-- Puente entre la interfaz y el motor -->
+    <script src="js/app.js"></script>
+
+    <!-- Registro del Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registrado:', registration.scope);
+
+                        // Detectar actualizaciones
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            if (!newWorker) return;
+
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Hay nueva versión disponible
+                                    const recargar = confirm(
+                                        '🚗 Nueva versión de Mi Kilometraje disponible.\n\n' +
+                                        '¿Recargar ahora para actualizar?'
+                                    );
+                                    if (recargar) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('❌ Error registrando Service Worker:', error);
+                    });
+
+                // Cuando el SW toma control, recargar una vez para asegurar
+                let recargado = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!recargado) {
+                        recargado = true;
+                        window.location.reload();
+                    }
+                });
+            });
+        } else {
+            console.warn('⚠️ Service Worker no soportado en este navegador');
+        }
+    </script>
+</body>
+</html>
