@@ -47,7 +47,12 @@
                     <div class="form-group">
                         <label for="hodometroInicial">Hodómetro Inicial (km):</label>
                         <input type="number" id="hodometroInicial" 
-                               placeholder="Ej: 45230" required>
+                               placeholder="Se toma del viaje anterior"
+                               readonly
+                               title="Este valor se toma automáticamente del final del viaje anterior">
+                        <small class="ayuda-campo">
+                            🔒 Se completa automáticamente con el final del viaje anterior
+                        </small>
                     </div>
 
                     <div class="form-group">
@@ -177,6 +182,39 @@
                 </div>
             </section>
         </main>
+        
+        <!-- Modal de Hodómetro Base (primera vez) -->
+        <div id="modalHodometroBase" class="modal-overlay">
+            <div class="modal-contenido modal-hodometro">
+                <div class="modal-header">
+                    <h2>🚗 Hodómetro inicial</h2>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-intro">
+                        Para empezar, introduce el <strong>hodómetro actual</strong> de tu vehículo.
+                        A partir de ahí, cada viaje tomará como inicio el final del viaje anterior.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="hodometroBaseInput">Hodómetro actual (km):</label>
+                        <input type="number"
+                               id="hodometroBaseInput"
+                               placeholder="Ej: 45230"
+                               min="0"
+                               step="0.1"
+                               autofocus>
+                    </div>
+
+                    <button type="button" id="btnGuardarHodometroBase" class="btn-primary">
+                        ✅ Guardar y continuar
+                    </button>
+
+                    <p class="modal-nota">
+                        💡 Podrás cambiarlo después desde el botón ⚙️ Ajustes.
+                    </p>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal de Ajustes -->
         <div id="modalAjustes" class="modal-overlay">
@@ -191,6 +229,22 @@
                     <div class="info-datos" id="infoDatos">
                         <p>Cargando información...</p>
                     </div>
+
+                                        <!-- Hodómetro base -->
+                    <div class="seccion-hodometro-base">
+                        <h3>🚗 Hodómetro base</h3>
+                        <p class="hodometro-base-valor">
+                            Actual: <strong id="hodometroBaseActual">— km</strong>
+                        </p>
+                        <p class="accion-descripcion">
+                            Es el punto de partida. Cambiarlo afecta el cálculo del próximo viaje.
+                        </p>
+                        <button type="button" id="btnCambiarHodometroBase" class="btn-accion btn-secundario">
+                            ✏️ Cambiar hodómetro base
+                        </button>
+                    </div>
+
+                    <hr class="separador-modal">
 
                     <!-- Acciones -->
                     <div class="acciones-datos">
