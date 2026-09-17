@@ -88,10 +88,12 @@ class MiKilometrajeApp {
             // 5.b Modal de ajustes
             this.setupAjustes();
 
-            // 6. Cargar datos guardados
+            // 5.c Hodómetro base
+            await this.setupHodometroBase();
 
             // 6. Cargar datos guardados
             await this.cargarUltimoViaje();
+            await this.actualizarCampoHodometroInicial();
             await this.cargarMesesDisponibles();
             await this.cargarHistorial();
             await this.cargarMesesDisponiblesStats();
@@ -238,6 +240,7 @@ class MiKilometrajeApp {
 
             // Refrescar vistas
             await this.cargarUltimoViaje();
+            await this.actualizarCampoHodometroInicial();
             await this.cargarMesesDisponibles();
             await this.cargarHistorial();
             await this.cargarMesesDisponiblesStats();
@@ -822,6 +825,157 @@ class MiKilometrajeApp {
         }
     }
 
+    // ---------- Hodómetro base ----------
+    async setupHodometroBase() {
+        if (!window.dataStorage) return;
+
+        // Cargar valor guardado
+        const baseGuardada = await window.dataStorage.getSetting('hodometroBase', null);
+        this.hodometroBase = baseGuardada;
+
+        // Referencias del modal
+        const modal = document.getElementById('modalHodometroBase');
+        const input = document.getElementById('hodometroBaseInput');
+        const btnGuardar = document.getElementById('btnGuardarHodometroBase');
+        const btnCambiar = document.getElementById('btnCambiarHodometroBase');
+
+        if (!modal) return;
+
+        // Si no hay hodómetro base, mostrar el modal bloqueante
+        if (!baseGuardada) {
+            modal.classList.add('visible');
+            if (input) {
+                setTimeout(() => input.focus(), 300);
+            }
+        }
+
+        // Guardar desde el modal inicial
+        if (btnGuardar) {
+            btnGuardar.addEventListener('click', async () => {
+                await this.guardarHodometroBase(input);
+            });
+        }
+
+        // Permitir Enter en el input
+        if (input) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.guardarHodometroBase(input);
+                }
+            });
+        }
+
+        // Cambiar desde Ajustes
+        if (btnCambiar) {
+            btnCambiar.addEventListener('click', () => {
+                this.abrirCambioHodometroBase();
+            });
+        }
+
+        // Actualizar el valor mostrado en Ajustes
+        await this.actualizarValorHodometroBase();
+    }
+
+    async guardarHodometroBase(input) {
+        if (!input || !window.dataStorage) return;
+
+        const valor = parseFloat(input.value);
+        if (isNaN(valor) || valor < 0) {
+            this.notifications.error('Introduce un número válido');
+            return;
+        }
+
+        try {
+            await window.dataStorage.saveSetting('hodometroBase', valor);
+
+            // Histórico de cambios
+            const historico = await window.dataStorage.getSetting('hodometroBaseHistorico', []);
+            historico.push({
+                valor: valor,
+                fecha: Date.now(),
+                accion: 'inicial'
+            });
+            await window.dataStorage.saveSetting('hodometroBaseHistorico', historico);
+
+            this.hodometroBase = valor;
+            this.notifications.success(`Hodómetro base: ${valor.toFixed(1)} km`);
+
+            // Cerrar modal
+            const modal = document.getElementById('modalHodometroBase');
+            if (modal) modal.classList.remove('visible');
+
+            // Auto-rellenar el campo del formulario
+            await this.actualizarCampoHodometroInicial();
+
+            // Actualizar el valor en Ajustes
+            await this.actualizarValorHodometroBase();
+
+        } catch (error) {
+            console.error('Error guardando hodómetro base:', error);
+            this.notifications.error('No se pudo guardar el hodómetro base');
+        }
+    }
+
+    async abrirCambioHodometroBase() {
+        const modal = document.getElementById('modalHodometroBase');
+        const input = document.getElementById('hodometroBaseInput');
+        if (!modal || !input) return;
+
+        // Pre-rellenar con el valor actual
+        input.value = this.hodometroBase != null ? this.hodometroBase : '';
+        modal.classList.add('visible');
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 300);
+    }
+
+    async actualizarValorHodometroBase() {
+        const el = document.getElementById('hodometroBaseActual');
+        if (!el || !window.dataStorage) return;
+
+        const valor = await window.dataStorage.getSetting('hodometroBase', null);
+        if (valor == null) {
+            el.textContent = 'Sin definir';
+        } else {
+            el.textContent = `${Number(valor).toFixed(1)} km`;
+        }
+    }
+
+    // ---------- Auto-relleno del campo "Hodómetro Inicial" ----------
+    async actualizarCampoHodometroInicial() {
+        const campo = document.getElementById('hodometroInicial');
+        if (!campo || !window.dataStorage) return;
+
+        // 1. Buscar el último viaje por timestamp
+        const sesiones = await window.dataStorage.getAllSessions() || [];
+
+        if (sesiones.length === 0) {
+            // Sin viajes: usar el hodómetro base
+            const base = await window.dataStorage.getSetting('hodometroBase', null);
+            if (base != null) {
+                campo.value = Number(base).toFixed(1);
+            } else {
+                campo.value = '';
+            }
+            return;
+        }
+
+        // 2. Ordenar por timestamp descendente
+        sesiones.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const ultimo = sesiones[0];
+
+        // 3. Usar el hodometroFinal del último viaje
+        if (ultimo.hodometroFinal != null) {
+            campo.value = Number(ultimo.hodometroFinal).toFixed(1);
+        } else {
+            // Fallback: usar el base
+            const base = await window.dataStorage.getSetting('hodometroBase', null);
+            if (base != null) campo.value = Number(base).toFixed(1);
+        }
+    }
+
     // ---------- Ajustes: modal, exportar, importar, borrar ----------
     setupAjustes() {
         const btnAbrir = document.getElementById('btn-ajustes');
@@ -836,9 +990,10 @@ class MiKilometrajeApp {
 
         // Abrir
         if (btnAbrir) {
-            btnAbrir.addEventListener('click', () => {
+            btnAbrir.addEventListener('click', async () => {
                 overlay.classList.add('visible');
-                this.actualizarInfoDatos();
+                await this.actualizarInfoDatos();
+                await this.actualizarValorHodometroBase();
             });
         }
 
