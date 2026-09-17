@@ -844,3 +844,122 @@ header {
     font-size: 0.75em;
     margin-top: 25px;
 }
+
+/* ============================
+   Modal de Hodómetro Base
+   ============================ */
+
+.modal-hodometro {
+    max-width: 420px;
+}
+
+.modal-hodometro .modal-header {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.modal-hodometro .modal-body {
+    padding: 25px 20px;
+}
+
+.modal-intro {
+    color: #555;
+    font-size: 0.95em;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-hodometro .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-hodometro .form-group input {
+    font-size: 1.2em;
+    padding: 14px;
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.modal-nota {
+    text-align: center;
+    color: #888;
+    font-size: 0.8em;
+    margin-top: 15px;
+    line-height: 1.4;
+}
+
+/* ============================
+   Sección Hodómetro Base en Ajustes
+   ============================ */
+
+.seccion-hodometro-base {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 4px solid #764ba2;
+}
+
+.seccion-hodometro-base h3 {
+    color: #764ba2;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+.hodometro-base-valor {
+    font-size: 1em;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.hodometro-base-valor strong {
+    color: #764ba2;
+    font-size: 1.15em;
+}
+
+.separador-modal {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 20px 0;
+}
+
+.btn-secundario {
+    background: white;
+    border: 2px solid #764ba2;
+    color: #764ba2;
+}
+
+.btn-secundario:hover {
+    background: #764ba2;
+    color: white;
+}
+
+/* Ayuda debajo del campo de hodómetro inicial */
+.ayuda-campo {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #888;
+    font-style: italic;
+}
+
+/* Campo readonly: se ve distinto */
+input[readonly] {
+    background: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+    border-color: #e0e0e0;
+}
+
+input[readonly]:focus {
+    border-color: #e0e0e0;
+    outline: none;
+}
+
+.version-info {
+    text-align: center;
+    color: #ccc;
+    font-size: 0.75em;
+    margin-top: 25px;
+}
