@@ -828,6 +828,18 @@ class MiKilometrajeApp {
     // ---------- Hodómetro base ----------
     async setupHodometroBase() {
         if (!window.dataStorage) return;
+        
+        // Esperar a que dataStorage esté listo (máx 5 segundos)
+        let intentos =0;
+        while(!window.dataStorage.ready && intentos < 50){
+            await new Promise(r => setTimeout(r, 100));
+            intentos++;
+        }
+
+        if(!window.dataStorage.ready){
+            console.warn('dataStorage no estuvo listo a tiempo para leer hodometroBase');
+            return;
+        }
 
         // Cargar valor guardado
         const baseGuardada = await window.dataStorage.getSetting('hodometroBase', null);
