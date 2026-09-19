@@ -251,8 +251,34 @@ main {
     }
     
     .tab-btn {
-        padding: 12px;
-        font-size: 0.9em;
+        padding: 10px 4px;
+        font-size: 0.72em;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+}
+
+/* Pantallas muy estrechas: menos de 380px CSS*/
+@media (max-width: 380px){
+    .tap-btn {
+        padding: 8px 2px;
+        font-size: 0.68em;
+    }
+}
+/* Pantallas ultra estrechas: menos de 340px CSS*/
+@media (max-width: 340px){
+    .tap-btn{
+        padding: 8px 2px;
+    }
+    .tap-btn .tap-texto{
+        display:none;
+    }
+    .tap-btn .tap-emoji{
+        font-size: 1.4em;
+        display: block;
     }
 }
 
